@@ -35,24 +35,42 @@ Remotely monitor the sensed temperature, humidity using DHT11 and also remotely 
 
 6. What is Auto & Manual Setting?
 
-Auto takes 3 input pairs:
+    Auto takes 3 input pairs:
+    
+    * Low humidity-temperature `(x1,y1)`
+    * Medium humidity-temperature `(x2,y2)`
+    * High humidity-temperature `(x3,y3)`
+    
+    Compares these 3 input pairs with currently sensed Humidity-Temperature `(x,y)` pair by using a modified form of **Distance Formula** in order to decide the speed of the fan: low, medium or high speed. 
+    
+    Example, if the distance is `(x,y)` and `(x1,y1)` is the lowest, then speed must be low.
+    
+    Manual takes one single input out of:
+    * Low
+    * Medium
+    * High
+    * None
+    
+    If None is set, then it utilizes the latest auto setting parameters to decide the speed of the fan, otherwise, the Manual setting is considered over Auto Setting.
 
-* Low humidity-temperature `(x1,y1)`
-* Medium humidity-temperature `(x2,y2)`
-* High humidity-temperature `(x3,y3)`
+7. When you execute `rpi.py`
+![Terminal](https://i.snag.gy/3lTvOA.jpg)
 
-Compares these 3 input pairs with currently sensed Humidity-Temperature `(x,y)` pair by using a modified form of **Distance Formula** in order to decide the speed of the fan: low, medium or high speed. 
+### How does the raspberry-pi code work
+When you execute `rpi.py`, we fetch the manual setting from `site/api/manual.php`. 
+If manual setting is set, we sense the temp-humidity but set the fan speed as per manual choice, and send the sensed temperature-humidity to `site/api/data.php`.
+If manual setting is not present or it is None, we fetch the latest auto setting parameters from `sit/api/auto.php`, then sense the temp-humidity and use **Distance Formula** (as previously explained) to set the fan speed and then send the sensed temp-humidity to `site/api/data.php`.
+This cycle repeats every 5 seconds as defined in `rpi.py` inside `start` function.
 
-Example, if the distance is `(x,y)` and `(x1,y1)` is the lowest, then speed must be low.
-
-Manual takes one single input out of:
-* Low
-* Medium
-* High
-* None
-
-If None is set, then it utilizes the latest auto setting parameters to decide the speed of the fan, otherwise, the Manual setting is considered over Auto Setting.
-
+### How does the website work
+Webapp is used to remotely displayed all the sensed temp-humidity record, graph and all the settings previously defined. User can redefine auto/manual setting. It also contains the api endpoints defined in `api/*` files which is used to communicate between database, frontend and python, for: 
+* Fetching all the previous records of temperature-humidity
+* Fetching all the previous records of settings (auto/manual)
+* Set auto setting
+* Set manual setting
+* Truncate all previous records
+* Delete all manual settings
+* Delete all auto settings except latest one.
 ### Other Contributors
 
 * [Bhavik Parmar]( https://github.com/bp1807)
